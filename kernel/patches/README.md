@@ -1,22 +1,21 @@
 # Kernel patch steps
 
-The Redmi 8 kernel is `msm89x7-mainline/linux` tag `v7.1.3-r1`, as packaged by
-postmarketOS (`device/testing/linux-postmarketos-qcom-msm89x7` in
-[pmaports](https://gitlab.postmarketos.org/postmarketOS/pmaports), the revision
-that packages v7.1.3-r1, with its patches 0001–0003), plus the steps below.
+The Redmi 8 kernel is `msm89x7-mainline/linux` tag `v7.1.3-r1` plus the steps
+below. `scripts/build/build-kernel.sh` clones the tag and runs them; by hand:
+
+```bash
+git clone --depth 1 --branch v7.1.3-r1 https://github.com/msm89x7-mainline/linux
+kernel/patches/apply-all.sh linux
+```
 
 Most steps are Python scripts that edit the tree in place and `assert` on the
 text they expect, so a step applied to the wrong tree, or twice, fails loudly
 instead of half-applying. Each takes the kernel tree as its only argument.
 
-```bash
-kernel/patches/apply-all.sh <kernel-tree> <dir-with-pmaports-0001-0003>
-```
-
 | Step | Change |
 |---|---|
 | `00-olive-display-touch-v2.patch` | panel node and supplies, generated ILI9881H+ panel driver (postmarketOS `89x7-mainline` device work, extended) |
-| *pmaports 0001–0003* | UBWC entry for SDM439; drop the 12 nm DSI PHY DT override; DSI byte-clock OPP |
+| `0001-soc-qcom-ubwc-add-sdm439.patch` | UBWC entry for the SDM439 (`msm8937_data`), recovered from the reference kernel's `ubwc_config.ko` |
 | `01-dts-touch-backlight-gpu.py` | touch SPI node, LM3697 backlight wiring, `&gpu` enabled |
 | `02-add-touch-driver.py` | in-tree `ili9881h-tddi` touch driver from `src/` + Kconfig/Makefile |
 | `03-port-dsi-phy-12nm.py` | `dsi_phy_12nm.c` from `sdm439-12nm/` (linux-msm experiment `ce300c988d76`) ported to 7.1, PHY registration, DT PHY timings, SPI mode 0, `LOCALVERSION=-msm89x7-olive-r7` |

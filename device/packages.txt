@@ -1,0 +1,11 @@
+# Redmi 8: packages the hardware needs on top of image/common/packages.txt.
+
+# initramfs: Ubuntu's initramfs-tools, plus a full busybox for the USB
+# rescue shell (telnetd)
+initramfs-tools
+busybox-static
+
+# GPU microcode (a530_pm4/pfp) and the rest of the Qualcomm firmware set;
+# the phone's own Wi-Fi, ADSP and video firmware is linked from its Android
+# partitions at boot by msm-firmware-loader
+linux-firmware

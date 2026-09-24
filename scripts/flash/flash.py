@@ -6,17 +6,18 @@
     python scripts/flash/flash.py --flash --reboot
 
 The phone must be in the STOCK fastboot mode (power off, then hold
-Volume-Down + Power) with an unlocked bootloader. What gets written:
+Volume-Down + Power) with an unlocked bootloader. What gets written, from
+dist/image/ (built by image/build-image.sh):
 
-    userdata  dist/redmi8-ubuntu-<date>-userdata.img   (Android sparse)
-    boot      dist/lk2nd-olive-20260920.img             (lk2nd, boots extlinux)
+    userdata  userdata.img   (Android sparse, the whole Ubuntu system)
+    boot      lk2nd.img      (lk2nd, boots extlinux)
 
 !! userdata is the whole Android data partition: everything on it is gone.
    Android itself (system, vendor, modem, persist) is not touched, and the
    stock boot image can be flashed back to return to Android.
 
-Before anything is written the script checks: the image checksum and its
-sparse structure, that the device says product=olive, unlocked=yes and is the
+Before anything is written the script checks: the images against
+SHA256SUMS, the sparse structure, that the device says product=olive, unlocked=yes and is the
 stock bootloader (kernel=lk), the battery, and that both images fit their
 partitions. It never reboots after a failed write.
 """
@@ -31,9 +32,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-DIST = ROOT / 'dist'
-LK2ND = DIST / 'lk2nd-olive-20260920.img'
-LK2ND_SHA256 = '3c718fd12d74483e8b13b949d59fddad7fd7b582e26b9d0ab7ec7d79ecd7b501'
+IMAGES = ROOT / 'dist' / 'image'
 
 
 def find_fastboot(given):
@@ -73,16 +72,9 @@ def sparse_size(path):
         return blocks * bs
 
 
-def latest_image():
-    images = sorted(DIST.glob('redmi8-ubuntu-*-userdata.img'))
-    if not images:
-        raise SystemExit(f'no redmi8-ubuntu-*-userdata.img in {DIST}')
-    return images[-1]
-
-
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('--image', type=Path, help='userdata image (default: newest in dist/)')
+    p.add_argument('--images', type=Path, default=IMAGES, help='directory with the images (default dist/image)')
     p.add_argument('--fastboot', help='path to fastboot')
     p.add_argument('--serial', help='fastboot serial, if more than one device is attached')
     p.add_argument('--flash', action='store_true', help='actually write (default: checks only)')
@@ -90,21 +82,24 @@ def main():
     args = p.parse_args()
 
     fastboot = find_fastboot(args.fastboot)
-    image = args.image or latest_image()
     base = [fastboot] + (['-s', args.serial] if args.serial else [])
-
-    print(f'image   {image}')
-    sums = image.with_name(image.name + '.sha256')
-    if sums.is_file():
-        expected = sums.read_text().split()[0]
-        if sha256(image) != expected:
-            raise SystemExit('image checksum MISMATCH - download/copy it again')
-        print('        checksum ok')
+    image = args.images / 'userdata.img'
+    lk2nd = args.images / 'lk2nd.img'
+    listing = args.images / 'SHA256SUMS'
+    if not listing.is_file():
+        raise SystemExit(f'{listing} missing - build the images first (image/build-image.sh)')
+    sums = {}
+    for line in listing.read_text().splitlines():
+        digest, name = line.split(None, 1)
+        sums[name.lstrip('*')] = digest
+    for path in (image, lk2nd):
+        if not path.is_file():
+            raise SystemExit(f'{path} missing')
+        if sha256(path) != sums.get(path.name):
+            raise SystemExit(f'{path.name}: checksum MISMATCH - build or copy it again')
     expanded = sparse_size(image)
-    print(f'        {expanded / 2**30:.2f} GiB expanded')
-    if sha256(LK2ND) != LK2ND_SHA256:
-        raise SystemExit(f'{LK2ND.name}: checksum mismatch')
-    print(f'boot    {LK2ND.name} ok')
+    print(f'image   {image.name} ok, {expanded / 2**30:.2f} GiB expanded')
+    print(f'boot    {lk2nd.name} ok')
 
     def getvar(name):
         try:
@@ -134,14 +129,14 @@ def main():
         raise SystemExit(f'battery at {mv} mV - charge to at least 3.7 V first')
     if expanded > int(v['partition-size:userdata'], 16):
         raise SystemExit('image larger than userdata')
-    if LK2ND.stat().st_size > int(v['partition-size:boot'], 16):
+    if lk2nd.stat().st_size > int(v['partition-size:boot'], 16):
         raise SystemExit('lk2nd larger than boot')
     print('checks  passed')
     if not args.flash:
         print('\nnothing written. Run again with --flash to install.')
         return 0
 
-    for partition, path in (('userdata', image), ('boot', LK2ND)):
+    for partition, path in (('userdata', image), ('boot', lk2nd)):
         print(f'\n== flashing {partition}', flush=True)
         # -S 256M: the stock bootloader's download buffer; fastboot re-sparses.
         if subprocess.call(base + ['-S', '256M', 'flash', partition, str(path)]) != 0:
@@ -150,8 +145,8 @@ def main():
     print('\nflash complete.')
     if args.reboot:
         subprocess.call(base + ['reboot'])
-        print('rebooting: first boot takes about a minute (the root filesystem grows '
-              'to the whole partition), then GNOME comes up.')
+        print('rebooting: the first boot grows the root filesystem to the whole '
+              'partition, then GNOME comes up.')
     else:
         print('reboot with:  fastboot reboot')
     return 0

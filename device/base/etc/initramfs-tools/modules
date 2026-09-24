@@ -1,0 +1,3 @@
+# USB gadget for the rescue link before the root filesystem is found
+libcomposite
+usb_f_ncm

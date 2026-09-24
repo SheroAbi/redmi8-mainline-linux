@@ -53,9 +53,8 @@ ILI9881H C3I panel + KTD3137 backlight. See [01-hardware.md](01-hardware.md).
 ## Kernel source reconstruction
 
 The tree that built `7.1.3-msm89x7-olive-r7` no longer exists. The source is
-the ordered patch steps in `kernel/patches/` on top of msm89x7 `v7.1.3-r1`
-and pmaports' patches 0001–0003; a rebuild is functionally equal, not
-bit-identical. See [02-building.md](02-building.md#1-kernel).
+the ordered patch steps in `kernel/patches/` on top of msm89x7 `v7.1.3-r1`;
+a rebuild is functionally equal, not bit-identical. See [02-building.md](02-building.md#1-kernel).
 
 ## USB network drops for a few seconds under load
 

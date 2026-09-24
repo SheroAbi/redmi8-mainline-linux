@@ -1,6 +1,0 @@
-#!/bin/sh
-while :; do
-    sleep 30
-    ip -4 -o addr show usb0 | grep -q '169.254.66.1/16' || /usr/local/bin/olive-net
-    systemctl is-active --quiet ssh.service || systemctl --no-block start ssh.service
-done

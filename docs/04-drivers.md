@@ -99,9 +99,9 @@ number handover to the firmware); with it the link would run at HT rates.
 
 ## Initramfs rescue
 
-See [02-building.md](02-building.md#4-initramfs): USB rescue shell before
-root discovery, boot counter with automatic confirmation after 90 s,
-`olive.test=r7` rollback, optional diagnostic gate.
+See [02-building.md](02-building.md#3-the-images): USB rescue shell before
+root discovery, the userdata disk image as a loop device, and a boot counter
+with automatic confirmation after 90 s.
 
 ## Desktop integration
 

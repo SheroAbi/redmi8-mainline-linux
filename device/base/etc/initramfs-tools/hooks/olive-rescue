@@ -1,0 +1,9 @@
+#!/bin/sh
+# Redmi 8: tools for the USB rescue shell and the userdata disk image.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+. /usr/share/initramfs-tools/hook-functions
+# busybox-static: telnetd and ip, which busybox-initramfs does not have
+copy_exec /usr/bin/busybox /bin/busybox-full
+copy_exec /usr/sbin/losetup /sbin/losetup

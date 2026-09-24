@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+G=/sys/kernel/config/usb_gadget/g1
+# Reuse the initramfs gadget. Never disconnect a working control channel.
+if [ -z "$(cat "$G/UDC" 2>/dev/null)" ]; then
+    echo "OLIVE: inherited USB gadget is not bound" >&2
+    exit 1
+fi
+ip link set usb0 up
+ip addr replace 172.16.43.1/24 dev usb0
+ip addr replace 169.254.66.1/16 dev usb0
+# Older initramfs versions used 172.16.42.1, which is the Galaxy S9+'s
+# address on a shared PC (see 20-usb.network).
+ip addr del 172.16.42.1/24 dev usb0 2>/dev/null || true
+echo "OLIVE: USB control link configured" > /dev/kmsg

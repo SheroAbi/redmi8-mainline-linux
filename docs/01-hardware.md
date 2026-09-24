@@ -13,19 +13,21 @@ Stock Xiaomi lk (aboot, unlocked)     fastboot 18d1:d00d, product=olive, kernel=
 lk2nd (320 KiB Android boot image)     fastboot 18d1:d001, kernel=lk2nd
    v  reads /extlinux/extlinux.conf from userdata, sub-partition 1
 vmlinuz + initramfs + DTB (fdtdir)
-   v  postmarketOS initramfs: USB rescue, finds p1/p2 by pmos_boot_uuid / pmos_root_uuid
+   v  initramfs (Ubuntu initramfs-tools + this port's hooks): USB rescue, attaches the disk image
 switch_root -> Ubuntu 24.04 on userdata, sub-partition 2
 ```
 
 `userdata` (`mmcblk0p62`, 50 GB) holds a whole disk image with its own MBR:
 
-| | start (sectors) | size | fs | label | UUID |
-|---|---|---|---|---|---|
-| p1 | 2048 | 512 MiB | ext2 | `pmOS_boot` | `7c3a9d1e-5f2b-4a8c-9d64-31b7e2f0a511` |
-| p2 | 1050624 | rest | ext4 | `pmOS_root` | `2f6e8a4c-1d39-4b57-8e2a-c90f5d3b7a24` |
+| | start (sectors) | size | fs | label |
+|---|---|---|---|---|
+| p1 | 2048 | 512 MiB | ext2 | `pmOS_boot` |
+| p2 | 1050624 | rest | ext4 | `pmOS_root` |
 
-The initramfs loop-mounts it (`/dev/loop0p1`, `/dev/loop0p2`) and grows p2
-and its filesystem to the end of `userdata` on the first boot.
+The filesystem UUIDs are new for every image build. The initramfs attaches
+the image as a loop device with partitions (`/dev/loop0p1`, `/dev/loop0p2`);
+on the first boot `grow-rootfs.service` grows p2 and its filesystem to the
+end of `userdata`.
 
 Android's own partitions (`modem`, `persist`, `vendor`, `dsp`, …) stay as they
 are; `msm-firmware-loader` mounts them read-only at boot and links their

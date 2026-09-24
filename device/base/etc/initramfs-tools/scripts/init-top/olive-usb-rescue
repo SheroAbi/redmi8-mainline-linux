@@ -1,0 +1,36 @@
+#!/bin/sh
+# Redmi 8: USB network plus a telnet rescue shell, before the root filesystem
+# is even looked for. Reachable on the USB cable only, never over Wi-Fi:
+#   telnet 169.254.66.1
+# The gadget ("g1", NCM, interface usb0) is kept after switch_root; the
+# running system reuses it (olive-net.service).
+PREREQ="udev"
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+
+modprobe libcomposite 2>/dev/null
+modprobe usb_f_ncm 2>/dev/null
+mountpoint -q /sys/kernel/config || mount -t configfs none /sys/kernel/config
+G=/sys/kernel/config/usb_gadget/g1
+if [ ! -d "$G" ]; then
+	mkdir -p "$G/strings/0x409" "$G/configs/c.1/strings/0x409" "$G/functions/ncm.usb0"
+	echo 0x18d1 > "$G/idVendor"
+	echo 0xd001 > "$G/idProduct"
+	echo "Xiaomi" > "$G/strings/0x409/manufacturer"
+	echo "Redmi 8 (Ubuntu)" > "$G/strings/0x409/product"
+	echo "NCM" > "$G/configs/c.1/strings/0x409/configuration"
+	ln -s "$G/functions/ncm.usb0" "$G/configs/c.1/"
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		udc=$(ls /sys/class/udc 2>/dev/null | head -n1)
+		[ -n "$udc" ] && break
+		sleep 0.5
+	done
+	[ -n "$udc" ] && echo "$udc" > "$G/UDC"
+fi
+BB=/bin/busybox-full
+$BB ip link set usb0 up 2>/dev/null
+$BB ip addr add 169.254.66.1/16 dev usb0 2>/dev/null
+$BB ip addr add 172.16.43.1/24 dev usb0 2>/dev/null
+$BB telnetd -b 169.254.66.1:23 -l /bin/sh
+echo "OLIVE: USB rescue shell on 169.254.66.1:23" > /dev/kmsg
+exit 0

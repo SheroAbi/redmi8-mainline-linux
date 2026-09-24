@@ -8,8 +8,10 @@
 | `kernel/patches/sdm439-12nm/` | `dsi_phy_12nm.c` and neighbours from the linux-msm tree at `ce300c988d76` | GPL-2.0-only |
 | `kernel/patches/src/ili9881h-tddi.c`, `kernel/modules/ili9881h-tddi-fb.c`, `ili9881h-ram-loader.h` | written for this port; the wire protocol follows ILITEK's GPL-2.0 vendor driver (`drivers/input/touchscreen/ili9881h/`, © 2011 ILI Technology Corp.) | GPL-2.0-only |
 | `kernel/patches/00-olive-display-touch-v2.patch` | postmarketOS `89x7-mainline` device work, extended | GPL-2.0-only |
-| lk2nd (the `boot` image, not in this repository) | https://github.com/msm8916-mainline/lk2nd, master of 2026-09-20 | BSD-3-Clause / MIT (LK) |
-| The Ubuntu userland in the image | Ubuntu 24.04 LTS (arm64), Mozilla Firefox APT build | their own licences |
-| `initramfs` in the image | postmarketOS mkinitfs, modified (rescue gate, boot counter) | GPL-2.0-or-later |
-| `wcnss.*` Wi-Fi firmware and `qcom/a530_*` GPU microcode in the image | copied from the stock `modem`/`vendor` partitions and linux-firmware | Qualcomm proprietary |
+| lk2nd (built by `image/build-lk2nd.sh`, not in this repository) | https://github.com/msm8916-mainline/lk2nd @ `8b46487c` (2026-09-20) | BSD-3-Clause / MIT (LK) |
+| msm-firmware-loader 1.8.0 (downloaded by the image build) | https://gitlab.postmarketos.org/postmarketOS/msm-firmware-loader | MIT |
+| `kernel/patches/0001-soc-qcom-ubwc-add-sdm439.patch` | a one-line addition to `drivers/soc/qcom/ubwc_config.c` of the msm89x7 tree | GPL-2.0-only |
+| `wcnss.*` Wi-Fi firmware and `qcom/a530_*` GPU microcode on the phone | linked at boot from the stock `modem`/`vendor` partitions, and Ubuntu's `linux-firmware` | Qualcomm proprietary |
 | Wi-Fi calibration (`WCNSS_qcom_wlan_nv.bin`), ADSP, venus | not shipped: `msm-firmware-loader` links them at boot from the phone's own `persist`, `modem` and `vendor` partitions — the NV file is calibrated per phone | — |
+
+The Ubuntu userland the image build installs comes from the Ubuntu 24.04 archive and Mozilla's Firefox APT repository, under their own licences.

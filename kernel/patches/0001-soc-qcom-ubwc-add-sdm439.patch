@@ -1,0 +1,19 @@
+From: redmi8-mainline-linux
+Subject: [PATCH] soc: qcom: ubwc: add SDM439
+
+The Adreno 505 of the SDM439 needs a UBWC entry, or msm refuses to probe
+("Couldn't find UBWC config data for this platform!"). The SDM439 is an
+MSM8937-family SoC; it gets the same data as msm8937, msm8940 and sdm450.
+Reconstructed from the running kernel's ubwc_config.ko, which maps
+qcom,sdm439 to msm8937_data.
+---
+--- a/drivers/soc/qcom/ubwc_config.c
++++ b/drivers/soc/qcom/ubwc_config.c
+@@ -272,6 +272,7 @@
+ 	{ .compatible = "qcom,sc8180x", .data = &sc8180x_data, },
+ 	{ .compatible = "qcom,sc8280xp", .data = &sc8280xp_data, },
+ 	{ .compatible = "qcom,sda660", .data = &msm8937_data },
++	{ .compatible = "qcom,sdm439", .data = &msm8937_data },
+ 	{ .compatible = "qcom,sdm450", .data = &msm8937_data },
+ 	{ .compatible = "qcom,sdm630", .data = &msm8937_data },
+ 	{ .compatible = "qcom,sdm632", .data = &msm8937_data },

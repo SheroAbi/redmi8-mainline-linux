@@ -1,0 +1,16 @@
+#!/bin/sh
+# Redmi 8: the whole system is a disk image on the userdata partition, with
+# its own partition table (p1 = /boot, p2 = /). Attach it as a loop device
+# with partitions, so the root filesystem can be found by its UUID.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+. /scripts/functions
+
+part=/dev/disk/by-partlabel/userdata
+i=0
+while [ ! -e "$part" ] && [ $i -lt 60 ]; do sleep 0.5; i=$((i + 1)); done
+[ -e "$part" ] || panic "OLIVE: no userdata partition"
+losetup -j "$part" | grep -q . || losetup -P -f "$part"
+udevadm settle 2>/dev/null || true
+exit 0

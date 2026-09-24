@@ -12,9 +12,9 @@ running, phone on USB. Tools: `systemd-analyze`, `/sys` and `/proc` readouts,
 | Userspace to `graphical.target` | 12.2 s | 11.8 s |
 | **Total (`systemd-analyze`)** | **27.2 s** | **16.9 s** |
 
-The 10 s were a diagnostic gate in the initramfs, waiting on every boot for a
-rescue connection. It now waits only with `olive.gate` on the command line.
-Tested with the `olive.test=r7` rollback armed, then as the default, twice.
+The 10 s were a diagnostic gate in the reference phone's first initramfs,
+waiting on every boot for a rescue connection. The initramfs of the clean
+image has no such gate.
 
 ## Wi-Fi
 
