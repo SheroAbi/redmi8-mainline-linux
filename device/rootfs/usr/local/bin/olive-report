@@ -1,0 +1,20 @@
+#!/bin/sh
+echo "=== olive report $(date) uptime $(cut -d. -f1 /proc/uptime)s ==="
+echo "--- kernel ---"; uname -a; cat /proc/cmdline
+echo "--- bootcount ---"; cat /var/lib/olive/bootcount 2>/dev/null
+echo "--- last hang ---"; cat /var/lib/olive/last-hang 2>/dev/null || echo none
+echo "--- modules ---"; lsmod | grep -E "msm|ili|lm3697|lmu|ubwc|wcn" || echo none
+echo "--- drm ---"; ls /sys/class/drm/ 2>/dev/null; ls -la /dev/dri/ 2>/dev/null
+echo "--- backlight ---"
+for b in /sys/class/backlight/*; do [ -e "$b" ] || continue
+  echo "$b max=$(cat $b/max_brightness 2>/dev/null) cur=$(cat $b/brightness 2>/dev/null)"; done
+echo "--- leds ---"; ls /sys/class/leds/ 2>/dev/null
+echo "--- input ---"; cat /proc/bus/input/devices 2>/dev/null | grep -E "^[NP]:"
+echo "--- power_supply ---"; ls /sys/class/power_supply/ 2>/dev/null
+echo "--- iio ---"; for f in /sys/bus/iio/devices/iio:device*/name; do echo "$f=$(cat $f)"; done 2>/dev/null
+echo "--- spi ---"; ls /sys/bus/spi/devices/ 2>/dev/null
+echo "--- net ---"; ip -br addr
+echo "--- failed units ---"; systemctl --failed --no-legend --no-pager 2>/dev/null
+echo "--- dmesg relevant ---"
+dmesg 2>/dev/null | grep -iE "msm|adreno|ili|lm3697|dsi|panel|drm|backlight|ubwc|error|fail|warn" | tail -60
+echo "--- dmesg tail ---"; dmesg 2>/dev/null | tail -40

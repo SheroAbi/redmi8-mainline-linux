@@ -1,0 +1,4 @@
+# Out-of-tree drivers of the Redmi 8 (olive) port.
+obj-m += ktd3137-backlight.o
+obj-m += ili9881h-tddi-fb.o
+obj-m += olive-power.o

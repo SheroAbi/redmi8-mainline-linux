@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+# Marks this boot as healthy: resets the initramfs rescue boot counter.
+# Run by olive-autoconfirm.timer 90 s after boot.
+case "$(tr '\000' '\n' </proc/device-tree/compatible)" in
+    *xiaomi,olive*) ;;
+    *) echo 'Unexpected device' >&2; exit 1 ;;
+esac
+install -d -m 755 /var/lib/olive
+printf '0\n' > /var/lib/olive/bootcount
+cat /proc/sys/kernel/random/boot_id > /var/lib/olive/confirmed-boot-id
+sync -f /var/lib/olive
+echo 'SSH-CONFIRMED'

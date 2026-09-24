@@ -1,0 +1,27 @@
+#!/bin/sh
+# Load the Adreno 505 as a render-only DRM device and, only if that worked,
+# let Mesa render through it ("kmsro": GPU draws, the bootloader framebuffer
+# shows). Without a working GPU nothing is set and GNOME renders on the CPU.
+set -u
+ENV=/run/environment.d/90-olive-gpu.conf
+rm -f "$ENV"
+log() { echo "olive-gpu: $*" > /dev/kmsg; }
+
+# msm stays off the udev autoload list; with the display subsystem disabled in
+# the device tree and separate_gpu_kms=1 it only binds the GPU.
+timeout 45 modprobe msm separate_gpu_kms=1 || { log "msm load failed"; exit 0; }
+
+for i in $(seq 1 20); do
+    for node in /dev/dri/renderD*; do
+        [ -e "$node" ] || continue
+        if [ "$(basename "$(readlink -f /sys/class/drm/$(basename "$node")/device/driver)")" = adreno ]; then
+            mkdir -p /run/environment.d
+            echo "MESA_LOADER_DRIVER_OVERRIDE=kmsro" > "$ENV"
+            log "Adreno 505 ready at $node, GNOME renders on the GPU"
+            exit 0
+        fi
+    done
+    sleep 0.5
+done
+log "no Adreno render node, GNOME stays on software rendering"
+exit 0

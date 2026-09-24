@@ -1,0 +1,22 @@
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 2, June 1991
+
+ Copyright (C) 1989, 1991 Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+This project contains Linux kernel drivers, kernel patches and device trees.
+They are licensed GPL-2.0-only, the same terms as the kernel they are built
+into.
+
+The full licence text is the one shipped with the Linux kernel as
+COPYING / LICENSES/preferred/GPL-2.0, and is reproduced here by reference:
+
+    https://www.kernel.org/doc/html/latest/process/license-rules.html
+    https://spdx.org/licenses/GPL-2.0-only.html
+
+Every driver source carries its own SPDX identifier. The scripts under
+scripts/ and device/ are released under the same terms. Firmware in
+firmware/ and the files in kernel/downstream-reference/ are NOT covered by
+this licence; see THIRD-PARTY.md.

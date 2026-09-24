@@ -1,0 +1,13 @@
+[Unit]
+Description=Retain the Redmi 8 USB control link
+After=systemd-udevd.service
+Before=ssh.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/olive-net
+RemainAfterExit=yes
+TimeoutStartSec=15
+
+[Install]
+WantedBy=multi-user.target

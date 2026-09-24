@@ -1,0 +1,7 @@
+{
+  "uuid": "olive-display@redmi8",
+  "name": "Redmi 8 Display",
+  "description": "Keeps the top bar clear of the Redmi 8 notch and rounded corners, and opens app windows maximized like on a phone.",
+  "shell-version": ["46"],
+  "version": 1
+}

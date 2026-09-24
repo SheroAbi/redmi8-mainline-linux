@@ -1,0 +1,9 @@
+[Unit]
+Description=Redmi 8: confirm the boot 90 s after start
+
+[Timer]
+OnBootSec=90s
+Unit=olive-autoconfirm.service
+
+[Install]
+WantedBy=timers.target

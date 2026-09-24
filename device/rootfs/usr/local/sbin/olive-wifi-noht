@@ -1,0 +1,19 @@
+#!/bin/sh
+# wpa_cli action script (olive-wifi-noht.service): keep Wi-Fi on legacy rates.
+#
+# Once an 802.11n Block-Ack session (TX A-MPDU) is up, the access point drops
+# 50-80 % of what the Redmi 8 (wcn36xx, WCN3620) sends, and what does arrive
+# is 15-50 ms late: pings, TCP ACKs, SSH logins. Received traffic is fine.
+# Without HT: 0 % loss, 1 ms. Until the driver is patched, every association
+# is redone without HT.
+#
+# Called by wpa_cli as: olive-wifi-noht <ifname> CONNECTED|DISCONNECTED
+[ "$2" = CONNECTED ] || exit 0
+W="wpa_cli -p /run/wpa_supplicant -i $1"
+id=$($W status | sed -n 's/^id=//p')
+[ -n "$id" ] || exit 0
+[ "$($W get_network "$id" disable_ht)" = 1 ] && exit 0
+$W set_network "$id" disable_ht 1 >/dev/null
+$W reassociate >/dev/null
+logger -t olive-wifi "$1: reassociated without 802.11n (wcn36xx TX A-MPDU loses frames)"
+exit 0

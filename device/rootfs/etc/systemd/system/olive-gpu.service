@@ -1,0 +1,13 @@
+[Unit]
+Description=Redmi 8: Adreno 505 render GPU for GNOME
+After=systemd-udevd.service local-fs.target
+Before=display-manager.service gdm.service systemd-user-sessions.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=60
+ExecStart=/usr/local/bin/olive-gpu
+
+[Install]
+WantedBy=graphical.target

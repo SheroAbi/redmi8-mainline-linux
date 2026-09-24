@@ -1,0 +1,12 @@
+# images and kernel artifacts: dist/ is local only (see README.md)
+/dist/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+Module.symvers
+modules.order
+*.img
+__pycache__/
+*.pyc

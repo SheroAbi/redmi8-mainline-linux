@@ -1,0 +1,9 @@
+/* Rounded display corners on the Redmi 8: keep indicators out of them.
+ * The panel itself ignores padding when allocating, so pad its boxes. */
+#panel.olive-cutout #panelLeft {
+    padding-left: 34px;
+}
+
+#panel.olive-cutout #panelRight {
+    padding-right: 34px;
+}

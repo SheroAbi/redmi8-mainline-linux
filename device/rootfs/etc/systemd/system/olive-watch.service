@@ -1,0 +1,13 @@
+[Unit]
+Description=Olive channel keepalive
+After=olive-net.service
+Wants=olive-net.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/olive-watch
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

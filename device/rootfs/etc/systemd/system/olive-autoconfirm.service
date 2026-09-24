@@ -1,0 +1,6 @@
+[Unit]
+Description=Redmi 8: confirm a healthy boot (resets the rescue boot counter)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/olive-confirm-boot

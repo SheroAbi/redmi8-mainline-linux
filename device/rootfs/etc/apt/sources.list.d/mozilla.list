@@ -1,0 +1,1 @@
+deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] http://packages.mozilla.org/apt mozilla main

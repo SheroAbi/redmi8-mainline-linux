@@ -1,0 +1,19 @@
+[Match]
+Name=usb0
+
+[Network]
+# 172.16.43.1, not postmarketOS' usual 172.16.42.1: that one is the Galaxy
+# S9+'s, and with both phones on USB Windows could only ever reach one of them.
+Address=172.16.43.1/24
+Address=169.254.66.1/16
+ConfigureWithoutCarrier=yes
+DHCPServer=yes
+
+[DHCPServer]
+# Windows only gets an address in 172.16.43.0/24 -- no gateway, no DNS, so its
+# internet keeps going through its own adapters.
+PoolOffset=100
+PoolSize=50
+EmitRouter=no
+EmitDNS=no
+EmitNTP=no

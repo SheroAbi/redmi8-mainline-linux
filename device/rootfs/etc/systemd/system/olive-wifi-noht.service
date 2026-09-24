@@ -1,0 +1,17 @@
+[Unit]
+Description=Redmi 8: Wi-Fi without 802.11n (wcn36xx TX aggregation loses frames)
+After=wpa_supplicant.service
+BindsTo=wpa_supplicant.service
+
+[Service]
+# wpa_cli ends when wpa_supplicant drops wlan0 (NetworkManager restart,
+# rfkill); it simply comes back.
+ExecStart=/usr/sbin/wpa_cli -p /run/wpa_supplicant -i wlan0 -a /usr/local/sbin/olive-wifi-noht
+# At boot the phone often associates before wpa_cli is listening; the action
+# script then never hears CONNECTED. Look once at whatever is already there.
+ExecStartPost=/usr/local/sbin/olive-wifi-noht wlan0 CONNECTED
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=wpa_supplicant.service
