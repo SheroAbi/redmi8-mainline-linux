@@ -48,10 +48,14 @@ cp "$SRC/arch/arm64/boot/Image.gz" "$OUT/vmlinuz"
 cp "$SRC/.config" "$OUT/config"
 
 echo "=== out-of-tree drivers ==="
-make -C "$REPO/kernel/modules" KDIR="$SRC"
+# Built from a copy under $WORK: kbuild cannot take a space in M=, so a
+# checkout in e.g. "~/my phones/" would fail, and the repository stays clean.
+MODSRC=$WORK/modules-src
+rm -rf "$MODSRC"
+cp -r "$REPO/kernel/modules" "$MODSRC"
+make -C "$MODSRC" KDIR="$SRC"
 install -d "$OUT/modules/lib/modules/$KREL/extra"
-install -m 644 "$REPO"/kernel/modules/*.ko "$OUT/modules/lib/modules/$KREL/extra/"
-make -C "$REPO/kernel/modules" KDIR="$SRC" clean >/dev/null
+install -m 644 "$MODSRC"/*.ko "$OUT/modules/lib/modules/$KREL/extra/"
 
 ls -l "$OUT/vmlinuz"
 echo "modules: $(find "$OUT/modules" -name '*.ko*' | wc -l)"
