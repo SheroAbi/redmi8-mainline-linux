@@ -88,6 +88,19 @@ jobs:
           HOSTNAME_EXPECTED: redmi8
           # these need the phone's partitions, its USB gadget and its device tree
           DEVICE_UNITS: msm-firmware-loader.service olive-net.service olive-autoconfirm.service
+          # the Wi-Fi fix waits for wlan0, then attaches; mac80211_hwsim is a
+          # virtual Wi-Fi card
+          EXTRA_CHECKS: |
+            systemctl start wpa_supplicant.service
+            sleep 15
+            check "olive-wifi-noht waits for wlan0 without restarting" test \
+              "$(systemctl is-active olive-wifi-noht.service)/$(systemctl show -p NRestarts --value olive-wifi-noht.service)" = active/0
+            modprobe mac80211_hwsim radios=1
+            for i in $(seq 1 30); do [ -S /run/wpa_supplicant/wlan0 ] && break; sleep 2; done
+            sleep 5
+            check "olive-wifi-noht attaches wpa_cli once wlan0 is up" pgrep -x wpa_cli
+            check "olive-wifi-noht still has not restarted" \
+              test "$(systemctl show -p NRestarts --value olive-wifi-noht.service)" = 0
         run: |
           sudo apt-get install -y -qq --no-install-recommends qemu-system-arm sshpass zstd
           set -o pipefail
