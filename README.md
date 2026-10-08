@@ -1,5 +1,7 @@
 # 📱 Ubuntu on the Xiaomi Redmi 8
 
+[![build](https://github.com/SheroAbi/redmi8-mainline-linux/actions/workflows/build.yml/badge.svg)](https://github.com/SheroAbi/redmi8-mainline-linux/actions/workflows/build.yml)
+
 **A completely ordinary Ubuntu 24.04 with GNOME on the Redmi 8, on mainline Linux 7.1.3.**
 No Android underneath: Linux is in charge of the hardware, Firefox comes from
 Mozilla, updates come from Ubuntu with `apt`. Your old phone becomes a small
@@ -47,6 +49,8 @@ only and slower than it could be. Details: [docs/06-known-issues.md](docs/06-kno
 
 Everything is built from this repository and public sources: kernel, lk2nd,
 initramfs and a clean Ubuntu. No image is downloaded from us.
+These exact steps run on every change on a fresh Ubuntu 24.04 machine
+([build](https://github.com/SheroAbi/redmi8-mainline-linux/actions/workflows/build.yml)).
 
 **You need:** a Redmi 8 (olive) with an **unlocked bootloader** (Xiaomi Mi
 Unlock), a **Linux** build host (Ubuntu 24.04 on a PC or in a VM; WSL2 works
