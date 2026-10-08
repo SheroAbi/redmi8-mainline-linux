@@ -4,12 +4,15 @@ After=wpa_supplicant.service
 BindsTo=wpa_supplicant.service
 
 [Service]
+# wlan0's control socket exists only while wpa_supplicant runs the interface:
+# not before the Wi-Fi firmware is up, not while Wi-Fi is switched off. Wait
+# for it quietly; started without it, wpa_cli failed and came back every 2 s.
 # wpa_cli ends when wpa_supplicant drops wlan0 (NetworkManager restart,
-# rfkill); it simply comes back.
-ExecStart=/usr/sbin/wpa_cli -p /run/wpa_supplicant -i wlan0 -a /usr/local/sbin/olive-wifi-noht
+# rfkill); it then waits again.
 # At boot the phone often associates before wpa_cli is listening; the action
-# script then never hears CONNECTED. Look once at whatever is already there.
-ExecStartPost=/usr/local/sbin/olive-wifi-noht wlan0 CONNECTED
+# script then never hears CONNECTED. Look once at whatever is already there,
+# a second after wpa_cli attached.
+ExecStart=/bin/sh -c 'until [ -S /run/wpa_supplicant/wlan0 ]; do sleep 2; done; (sleep 1; /usr/local/sbin/olive-wifi-noht wlan0 CONNECTED) & exec /usr/sbin/wpa_cli -p /run/wpa_supplicant -i wlan0 -a /usr/local/sbin/olive-wifi-noht'
 Restart=always
 RestartSec=2
 

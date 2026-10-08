@@ -81,3 +81,21 @@ jobs:
           test ! -e /mnt/r/etc/ssh/ssh_host_ed25519_key
           sudo grep -q '^root:[!*]' /mnt/r/etc/shadow
           sudo umount /mnt/b /mnt/r && sudo losetup -d "$dev"
+
+      - name: First boot in a VM (scripts/ci/vm-boot-test.sh)
+        env:
+          IMAGE_PASSWORD: ci-only-not-a-real-password
+          HOSTNAME_EXPECTED: redmi8
+          # these need the phone's partitions, its USB gadget and its device tree
+          DEVICE_UNITS: msm-firmware-loader.service olive-net.service olive-autoconfirm.service
+        run: |
+          sudo apt-get install -y -qq --no-install-recommends qemu-system-arm sshpass zstd
+          set -o pipefail
+          sudo -E scripts/ci/vm-boot-test.sh /mnt/userdata.raw vda2 2>&1 | tee /tmp/vm.log
+
+      - name: VM log
+        if: failure()
+        run: |
+          if [ -f /tmp/vm.log ]; then
+            python3 scripts/ci/annotate_tail.py /tmp/vm.log vm-boot-test.sh
+          fi
