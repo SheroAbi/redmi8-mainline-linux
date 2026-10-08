@@ -1,0 +1,83 @@
+# The README's build steps on a fresh Ubuntu 24.04 machine, with exactly the
+# host packages the README lists: proves the build works on plain Linux.
+# Nothing is published; on a failure the end of the log becomes annotations
+# (job logs need a login, annotations do not).
+name: build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'kernel/**'
+      - 'scripts/build/**'
+      - 'device/**'
+      - 'image/**'
+      - 'firmware/**'
+      - 'scripts/ci/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: kernel, lk2nd and userdata image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    env:
+      WORK: /mnt/redmi8-build
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Host packages (as listed in the README)
+        run: |
+          df -h / /mnt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq git make clang lld llvm bc bison flex libssl-dev libelf-dev \
+            python3 zstd debootstrap qemu-user-static binfmt-support e2fsprogs \
+            openssl curl fdisk gcc-arm-none-eabi device-tree-compiler python3-libfdt
+          sudo install -d -o "$USER" "$WORK"
+
+      - name: scripts/build/build-kernel.sh
+        run: |
+          set -o pipefail
+          scripts/build/build-kernel.sh 2>&1 | tee /tmp/kernel.log | grep -E '^===|KERNEL_OK|error' || true
+          test -f "$WORK/kernel/vmlinuz"
+          ls "$WORK/kernel/modules/lib/modules/"*/extra
+
+      - name: image/build-image.sh
+        env:
+          IMAGE_PASSWORD: ci-only-not-a-real-password
+        run: |
+          set -o pipefail
+          sudo -E KERNEL_DIR="$WORK/kernel" WORK=/mnt/redmi8-image OUT=/mnt/image-out \
+            image/build-image.sh 2>&1 | tee /tmp/image.log
+
+      - name: Logs
+        if: failure()
+        run: |
+          [ -f /tmp/image.log ] && python3 scripts/ci/annotate_tail.py /tmp/image.log build-image.sh \
+            || python3 scripts/ci/annotate_tail.py /tmp/kernel.log build-kernel.sh
+
+      - name: Check the images
+        run: |
+          cd /mnt/image-out && ls -l && sha256sum -c SHA256SUMS
+          head -c 8 lk2nd.img | grep -q 'ANDROID!'
+          sudo apt-get install -y -qq android-sdk-libsparse-utils
+          sudo simg2img userdata.img /mnt/userdata.raw
+          dev=$(sudo losetup -fP --show /mnt/userdata.raw)
+          sudo e2fsck -fn "${dev}p1"
+          sudo e2fsck -fn "${dev}p2"
+          sudo mkdir -p /mnt/b /mnt/r
+          sudo mount -o ro "${dev}p1" /mnt/b && sudo mount -o ro "${dev}p2" /mnt/r
+          cat /mnt/b/extlinux/extlinux.conf
+          ls -l /mnt/b/ubuntu
+          test -f /mnt/r/usr/sbin/gdm3
+          test -L /mnt/r/lib && test -e /mnt/r/lib/ld-linux-aarch64.so.1
+          ls /mnt/r/usr/lib/modules/*/extra
+          test ! -e /mnt/r/etc/ssh/ssh_host_ed25519_key
+          sudo grep -q '^root:[!*]' /mnt/r/etc/shadow
+          sudo umount /mnt/b /mnt/r && sudo losetup -d "$dev"
